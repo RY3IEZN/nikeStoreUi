@@ -5,12 +5,18 @@ import {
   FlatList,
   View,
   StyleSheet,
+  Modal,
   TouchableOpacity,
   Text,
+  Dimensions,
   Image,
 } from "react-native";
 import { Svg, Polygond, Polygon } from "react-native-svg";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+//import { BlurView } from "@react-native-community/blur";
+import { BlurView } from "expo-blur";
+
+const { width, height } = Dimensions.get("screen");
 
 function HomeScreen(props) {
   const [trending, setTrending] = useState([
@@ -89,10 +95,19 @@ function HomeScreen(props) {
       sizes: [6, 7, 8, 9, 10, 11],
     },
   ]);
+  const [showAddToBagModal, setShowAddToBagModal] = useState(false);
+  const [selectedItem, setSelectedItem] = useState();
+  const [selectedSize, setSelectedSize] = useState("");
 
   const TrendingShoes = (item, index) => {
     return (
-      <TouchableOpacity style={styles.trendshoeslist}>
+      <TouchableOpacity
+        onPress={() => {
+          setSelectedItem(item);
+          setShowAddToBagModal(true);
+        }}
+        style={styles.trendshoeslist}
+      >
         <Text style={{ color: "grey", fontSize: 15, fontWeight: "700" }}>
           {item.type}
         </Text>
@@ -154,7 +169,10 @@ function HomeScreen(props) {
   const renderRecentlyViewed = (item, index) => {
     return (
       <TouchableOpacity
-        onPress={() => console.log(item, "pressed")}
+        onPress={() => {
+          setSelectedItem(item);
+          setShowAddToBagModal(true);
+        }}
         style={{ flex: 1, flexDirection: "row", padding: 15 }}
       >
         <View
@@ -186,6 +204,27 @@ function HomeScreen(props) {
         </View>
       </TouchableOpacity>
     );
+  };
+
+  const renderShoeSizes = () => {
+    return selectedItem.sizes.map((item, index) => {
+      return (
+        <TouchableOpacity
+          key={index}
+          style={{
+            borderRadius: 5,
+            borderColor: "white",
+            borderWidth: 1,
+            width: 25,
+            height: 25,
+            alignItems: "center",
+            margin: 10,
+          }}
+        >
+          <Text>{item}</Text>
+        </TouchableOpacity>
+      );
+    });
   };
 
   return (
@@ -243,11 +282,134 @@ function HomeScreen(props) {
           />
         </View>
       </View>
+
+      {/* modal */}
+      {selectedItem && (
+        <Modal
+          visible={showAddToBagModal}
+          animationType="slide"
+          transparent={true}
+        >
+          <BlurView style={styles.blureviews} tint="light" intensity={90}>
+            <TouchableOpacity
+              onPress={() => {
+                setSelectedItem();
+                setSelectedSize("");
+                setShowAddToBagModal(false);
+              }}
+              style={{
+                postion: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+              }}
+            >
+              <View
+                onPress={() => {
+                  setSelectedItem();
+                  setSelectedSize("");
+                  setShowAddToBagModal(false);
+                }}
+                style={{
+                  height: 30,
+                  width: 70,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  borderRadius: 24,
+                  backgroundColor: selectedItem.bgColor,
+                  margin: 10,
+                }}
+              >
+                <Text style={styles.ordermodaltxt}>Close</Text>
+              </View>
+            </TouchableOpacity>
+
+            <View
+              style={{
+                backgroundColor: selectedItem.bgColor,
+                width: "85%",
+                borderRadius: 25,
+                padding: 5,
+              }}
+            >
+              <View>
+                <Image
+                  style={{
+                    width: width,
+                    height: height / 7,
+                    transform: [{ rotate: "-15deg" }],
+                  }}
+                  resizeMode="contain"
+                  source={selectedItem.img}
+                />
+              </View>
+              <Text
+                style={{
+                  padding: 5,
+                  margin: 5,
+                  fontSize: 20,
+                  color: "white",
+                  fontWeight: "700",
+                }}
+              >
+                {selectedItem.name}
+              </Text>
+              <Text style={styles.ordermodaltxt}>{selectedItem.price}</Text>
+              <Text style={styles.ordermodaltxt}>{selectedItem.type}</Text>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <View>
+                  <Text style={styles.ordermodaltxt}>Select Size</Text>
+                </View>
+                <View
+                  style={{
+                    margin: 2,
+                    flexWrap: "wrap",
+                    flex: 1,
+                    flexDirection: "row",
+                  }}
+                >
+                  {renderShoeSizes()}
+                </View>
+              </View>
+              <View
+                style={{ height: 1, width: "100%", backgroundColor: "black" }}
+              ></View>
+              <TouchableOpacity
+                style={{
+                  backgroundColor: "rgba(0,0,0,0)",
+                  padding: 10,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Text style={styles.ordermodaltxt}>Add to bag</Text>
+              </TouchableOpacity>
+            </View>
+          </BlurView>
+        </Modal>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  ordermodaltxt: {
+    fontSize: 20,
+    color: "white",
+    fontWeight: "700",
+  },
+  blureviews: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   lowerhalfcontainer: {
     shadowColor: "#000",
     shadowOffset: {
